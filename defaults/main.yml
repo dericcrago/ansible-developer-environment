@@ -1,0 +1,6 @@
+---
+install_docker: true
+install_python: true
+install_vscode: true
+install_ansible: false
+pyenv_python_version: "3.9.6"

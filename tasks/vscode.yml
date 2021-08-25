@@ -1,0 +1,35 @@
+- name: include fedora vscode tasks
+  ansible.builtin.include_tasks:
+    file: tasks/vscode/fedora.yml
+  when:
+    - ansible_facts['distribution'] == "Fedora"
+    - not ('code',) | select('in', ansible_facts.packages)
+
+- name: include ubuntu vscode tasks
+  ansible.builtin.include_tasks:
+    file: tasks/vscode/ubuntu.yml
+  when:
+    - ansible_facts['distribution'] == "Ubuntu"
+    - not ('code',) | select('in', ansible_facts.packages)
+
+- name: list installed vscode extensions
+  command:
+    argv:
+      - code
+      - --list-extensions
+  changed_when: false
+  register: vscode_extensions
+
+- name: install ms-python.python
+  command:
+    argv:
+      - code
+      - --install-extension
+      - ms-python.python
+  when: "'ms-python.python' not in vscode_extensions.stdout_lines"
+
+- name: turn off python getting started page
+  ansible.builtin.template:
+    src: "{{ vscode_settings_src }}"
+    dest: "{{ vscode_settings_dest }}"
+    mode: '0664'

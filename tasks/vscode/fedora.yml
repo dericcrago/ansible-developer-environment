@@ -1,0 +1,30 @@
+---
+- name: create temporary directory
+  ansible.builtin.tempfile:
+    state: directory
+    suffix: .vscode
+  register: temp_dir
+
+- name: change mode to 755
+  ansible.builtin.file:
+    path: "{{ temp_dir.path }}"
+    mode: '0755'
+
+- name: download vscode install file
+  ansible.builtin.get_url:
+    url: "{{ vscode_install_url }}"
+    dest: "{{ temp_dir.path }}"
+  register: get_url_result
+
+- name: install vscode
+  ansible.builtin.dnf:
+    name: "{{ get_url_result.dest }}"
+    state: present
+    disable_gpg_check: true
+  become: true
+
+- name: Use the registered var and the file module to remove the temporary file
+  ansible.builtin.file:
+    path: "{{ temp_dir.path }}"
+    state: absent
+  when: temp_dir.path is defined

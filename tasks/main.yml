@@ -1,0 +1,37 @@
+---
+- name: fail if not supported
+  ansible.builtin.fail:
+    msg: "{{ ansible_facts['distribution'] }} is not supported"
+  when: ansible_facts['distribution'] not in ('Fedora', 'Ubuntu')
+
+- name: include distribution specific variables
+  include_vars:
+    file: "{{ ansible_facts['distribution'] | lower }}.yml"
+
+- name: Gather the package facts
+  ansible.builtin.package_facts:
+    manager: auto
+
+- name: include docker tasks
+  ansible.builtin.include_tasks:
+    file: docker.yml
+    apply:
+      become: true
+  when: install_docker
+
+- name: include python tasks
+  ansible.builtin.include_tasks:
+    file: python.yml
+  when: install_python
+
+- name: include vscode tasks
+  ansible.builtin.include_tasks:
+    file: vscode.yml
+  when: install_vscode
+
+- name: install ansible
+  ansible.builtin.pip:
+    executable: "{{ pyenv_pip_path }}"
+    name: ansible
+    state: latest
+  when: install_ansible

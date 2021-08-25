@@ -1,0 +1,8 @@
+---
+docker_packages:
+  - docker-ce
+  - docker-ce-cli
+  - containerd.io
+pyenv_pip_path: ~/.pyenv/versions/{{ pyenv_python_version }}/bin/pip
+vscode_settings_dest: ~/.config/Code/User/settings.json
+vscode_settings_src: HOME/.config/Code/User/settings.json.j2

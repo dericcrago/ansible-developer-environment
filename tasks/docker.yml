@@ -1,0 +1,60 @@
+- name: remove old versions of docker
+  ansible.builtin.package:
+    name: "{{ docker_old_packages }}"
+    state: absent
+  when: docker_old_packages | select("in", ansible_facts.packages)
+
+- name: install repo configuration requirements
+  ansible.builtin.package:
+    name: "{{ repo_configuration_requirements }}"
+    state: present
+
+- name: add docker repo gpg key
+  ansible.builtin.shell: |
+    curl -fsSL https://download.docker.com/linux/ubuntu/gpg | gpg --dearmor -o /usr/share/keyrings/docker-archive-keyring.gpg
+  args:
+    executable: /bin/bash
+    creates: /usr/share/keyrings/docker-archive-keyring.gpg
+  when: ansible_facts['distribution'] == "Ubuntu"
+
+- name: add docker repo
+  ansible.builtin.template:
+    src: "{{ docker_repo_src }}"
+    dest: "{{ docker_repo_dest }}"
+    mode: '0644'
+  register: repo_result
+
+- name: run the equivalent of `apt update` as a separate step
+  ansible.builtin.apt:
+    update_cache: true
+  when:
+    - ansible_facts['distribution'] == "Ubuntu"
+    - repo_result is changed
+
+- name: install docker
+  ansible.builtin.package:
+    name: "{{ docker_packages }}"
+    state: present
+
+- name: enable and start the docker.service
+  ansible.builtin.systemd:
+    name: docker.service
+    enabled: true
+    state: started
+
+- name: enable and start the containerd.service
+  ansible.builtin.systemd:
+    name: containerd.service
+    enabled: true
+    state: started
+
+- name: ensure group "docker" exists
+  ansible.builtin.group:
+    name: docker
+    state: present
+
+- name: add the '{{ ansible_user }}' user to the 'docker' group
+  ansible.builtin.user:
+    name: "{{ ansible_user }}"
+    groups: docker
+    append: yes

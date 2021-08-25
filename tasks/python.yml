@@ -1,0 +1,46 @@
+- name: install git
+  ansible.builtin.package:
+    name: git
+    state: present
+  become: true
+
+- name: checkout pyenv
+  ansible.builtin.git:
+    repo: https://github.com/pyenv/pyenv.git
+    dest: ~/.pyenv
+
+- name: add pyenv to bashrc
+  ansible.builtin.blockinfile:
+    path: ~/.bashrc
+    block: |
+      export PYENV_ROOT="$HOME/.pyenv"
+      export PATH="$PYENV_ROOT/bin:$PATH"
+      eval "$(pyenv init --path)"
+      eval "$(pyenv init -)"
+
+- name: install pyenv dependencies
+  ansible.builtin.package:
+    name: "{{ pyenv_dependencies }}"
+    state: present
+  become: true
+
+- name: pyenv install python {{ pyenv_python_version }}
+  ansible.builtin.command:
+    argv:
+      - /bin/bash
+      - -i
+      - -c
+      - pyenv install --skip-existing {{ pyenv_python_version }}
+    creates: ~/.pyenv/versions/{{ pyenv_python_version }}
+
+- name: set pyenv global version to {{ pyenv_python_version }}
+  ansible.builtin.template:
+    src: HOME/.pyenv/version.j2
+    dest: ~/.pyenv/version
+    mode: '0664'
+
+- name: update pip to the latest version
+  ansible.builtin.pip:
+    executable: "{{ pyenv_pip_path }}"
+    name: pip
+    state: latest

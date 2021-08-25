@@ -1,0 +1,30 @@
+---
+docker_old_packages:
+  - docker
+  - docker-client
+  - docker-client-latest
+  - docker-common
+  - docker-engine
+  - docker-engine-selinux
+  - docker-latest
+  - docker-latest-logrotate
+  - docker-logrotate
+  - docker-selinux
+docker_repo_dest: /etc/yum.repos.d/docker-ce.repo
+docker_repo_src: etc/yum.repos.d/docker-ce.repo.j2
+pyenv_dependencies:
+  - bzip2
+  - bzip2-devel
+  - gcc
+  - libffi-devel
+  - make
+  - openssl-devel
+  - readline-devel
+  - sqlite
+  - sqlite-devel
+  - tk-devel
+  - xz-devel
+  - zlib-devel
+repo_configuration_requirements:
+  - dnf-plugins-core
+vscode_install_url: https://code.visualstudio.com/sha/download?build=stable&os=linux-rpm-x64
